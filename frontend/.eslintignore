@@ -1,0 +1,7 @@
+public
+node_modules
+build
+*.types.ts
+*.yml
+**/database.types.ts
+**/build
