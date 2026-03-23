@@ -14,7 +14,7 @@ func main() {
 	var allRoutes *chi.Mux
 	var webServer *http.Server
 
-	service_helper.StartService("backend-api-v2",
+	service_helper.StartService("api",
 		func(ctx context.Context, logger logger.Logger) error {
 			r, err := initRoutes()
 			if err != nil {

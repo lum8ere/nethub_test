@@ -2,6 +2,8 @@ package service_helper
 
 import (
 	"context"
+	"nethub-mdm/internal/storage"
+	"nethub-mdm/pkg/db_manager"
 	"nethub-mdm/pkg/logger"
 	"nethub-mdm/pkg/shutdown"
 	"os"
@@ -22,6 +24,21 @@ func StartService(
 	defer log.Sync()
 
 	ctx := context.Background()
+
+	dsn := "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+
+	mgr, err := db_manager.NewDbManager(dsn)
+	if err != nil {
+		log.Error("Error connecting to database: %v", err)
+		os.Exit(1)
+	}
+
+	err = mgr.UsePlugins(
+		storage.NewAuditPlugin(log),
+	)
+	if err != nil {
+		log.Error("initialization plugins failed", "error", err)
+	}
 
 	log.Info("Starting initialization...")
 
