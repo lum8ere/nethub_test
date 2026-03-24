@@ -37,8 +37,8 @@ func main() {
 	}
 	defer log.Sync()
 
-	if os.Getenv("ENV_PATH") == "" {
-		os.Setenv("ENV_PATH", "../../../.env")
+	if os.Getenv("ENV") != "production" && os.Getenv("ENV_PATH") == "" {
+		os.Setenv("ENV_PATH", "../../.env")
 	}
 
 	// 3. Загружаем конфигурацию
