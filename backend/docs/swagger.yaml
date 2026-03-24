@@ -1,12 +1,5 @@
 basePath: /
 definitions:
-  errors.ErrorResponse:
-    properties:
-      error:
-        type: string
-      message:
-        type: string
-    type: object
   gorm.DeletedAt:
     properties:
       time:
@@ -38,6 +31,13 @@ definitions:
       platform_code:
         type: string
       user_id:
+        type: string
+    type: object
+  nethub-mdm_pkg_errors.ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
         type: string
     type: object
 host: localhost:9000
@@ -99,8 +99,90 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errors.ErrorResponse'
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
       summary: Создать устройство
+      tags:
+      - devices
+  /api/v1/devices/{id}:
+    delete:
+      parameters:
+      - description: ID устройства (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешно удалено (No Content)
+        "400":
+          description: Неверный ID
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+      summary: Удалить устройство (Soft Delete)
+      tags:
+      - devices
+    get:
+      parameters:
+      - description: ID устройства (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nethub-mdm_internal_storage_model.Device'
+        "400":
+          description: Неверный ID
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+        "404":
+          description: Устройство не найдено
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+      summary: Получить устройство по ID
+      tags:
+      - devices
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID устройства (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Обновленные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/nethub-mdm_internal_storage_model.Device'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nethub-mdm_internal_storage_model.Device'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/nethub-mdm_pkg_errors.ErrorResponse'
+      summary: Обновить устройство
       tags:
       - devices
 swagger: "2.0"

@@ -64,14 +64,13 @@ func (h *DeviceHandler) List(w http.ResponseWriter, r *http.Request) {
 		isActive = &val
 	}
 
-	// Пагинация
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	if page < 1 {
 		page = 1
 	}
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	if limit < 1 || limit > 100 {
-		limit = 10 // Дефолт
+		limit = 10
 	}
 	offset := (page - 1) * limit
 
@@ -90,6 +89,14 @@ func (h *DeviceHandler) List(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary Получить устройство по ID
+// @Tags devices
+// @Produce json
+// @Param id path string true "ID устройства (UUID)"
+// @Success 200 {object} model.Device
+// @Failure 400 {object} errors.ErrorResponse "Неверный ID"
+// @Failure 404 {object} errors.ErrorResponse "Устройство не найдено"
+// @Router /api/v1/devices/{id} [get]
 func (h *DeviceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	dev, err := h.svc.GetByID(r.Context(), id)
@@ -100,6 +107,16 @@ func (h *DeviceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(dev)
 }
 
+// @Summary Обновить устройство
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param id path string true "ID устройства (UUID)"
+// @Param request body model.Device true "Обновленные данные"
+// @Success 200 {object} model.Device
+// @Failure 400 {object} errors.ErrorResponse "Неверный запрос"
+// @Failure 500 {object} errors.ErrorResponse "Ошибка сервера"
+// @Router /api/v1/devices/{id} [put]
 func (h *DeviceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	if idStr == "" {
@@ -122,6 +139,14 @@ func (h *DeviceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(dev)
 }
 
+// @Summary Удалить устройство (Soft Delete)
+// @Tags devices
+// @Produce json
+// @Param id path string true "ID устройства (UUID)"
+// @Success 204 "Успешно удалено (No Content)"
+// @Failure 400 {object} errors.ErrorResponse "Неверный ID"
+// @Failure 500 {object} errors.ErrorResponse "Ошибка сервера"
+// @Router /api/v1/devices/{id} [delete]
 func (h *DeviceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	if idStr == "" {
