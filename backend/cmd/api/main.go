@@ -37,7 +37,7 @@ func main() {
 	var allRoutes *chi.Mux
 	var webServer *http.Server
 
-	service_helper.StartService("api",
+	err = service_helper.StartService("api",
 		log,
 		cfg.DatabaseURL,
 		func(ctx context.Context, logger logger.Logger, mgr db_manager.Manager) error {
@@ -76,4 +76,8 @@ func main() {
 			return nil
 		},
 	)
+
+	if err != nil {
+		log.Fatalf("Service stopped with fatal error: %v", err)
+	}
 }

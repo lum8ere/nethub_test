@@ -7,7 +7,6 @@ import (
 	"nethub-mdm/pkg/db_manager"
 	"nethub-mdm/pkg/logger"
 	"nethub-mdm/pkg/shutdown"
-	"os"
 )
 
 type LifecycleFunc func(ctx context.Context, log logger.Logger, mgr db_manager.Manager) error
@@ -19,7 +18,7 @@ func StartService(
 	initFunc LifecycleFunc,
 	startFunc LifecycleFunc,
 	shutdownFunc LifecycleFunc,
-) {
+) error {
 	prefix := fmt.Sprintf("Service '%s'", serviceName)
 	logger.Infof("%s: Initializing", prefix)
 	defer logger.Infof("%s: Exited", prefix)
@@ -29,37 +28,36 @@ func StartService(
 
 	mgr, err := db_manager.NewDbManager(dsn)
 	if err != nil {
-		logger.Error("Error connecting to database: %v", err)
-		os.Exit(1)
+		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
 	err = mgr.UsePlugins(
 		storage.NewAuditPlugin(logger),
 	)
 	if err != nil {
-		logger.Error("initialization plugins failed", "error", err)
+		return fmt.Errorf("initialization plugins failed: %w", err)
 	}
 
 	logger.Info("Starting initialization...")
 
 	if err := initFunc(ctx, logger, mgr); err != nil {
-		logger.Error("Initialization failed", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("Initialization failed: %w", err)
 	}
 
 	if err := startFunc(ctx, logger, mgr); err != nil {
-		logger.Error("Start failed", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("Start failed: %w", err)
 	}
 
 	logger.Info("Service is running. Waiting for shutdown signal...")
 	sig := shutdown.WaitForSignalToShutdown()
+	cancel()
 	logger.Info("Received shutdown signal", "signal", sig.String())
 
 	if err := shutdownFunc(ctx, logger, mgr); err != nil {
-		logger.Error("Shutdown completed with error", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("Shutdown completed with error: %w", err)
 	} else {
 		logger.Info("Shutdown completed successfully")
 	}
+
+	return nil
 }
