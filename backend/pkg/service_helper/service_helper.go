@@ -25,6 +25,7 @@ func StartService(
 
 	ctx := context.Background()
 
+	// FIXME: вынести в env
 	dsn := "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
 	mgr, err := db_manager.NewDbManager(dsn)

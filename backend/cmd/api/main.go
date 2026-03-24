@@ -3,12 +3,17 @@ package main
 import (
 	"context"
 	"net/http"
+	"nethub-mdm/internal/transport/http/handler"
 	"nethub-mdm/pkg/logger"
 	"nethub-mdm/pkg/service_helper"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 )
+
+type AppHandlers struct {
+	Device *handler.DeviceHandler
+}
 
 func main() {
 	var allRoutes *chi.Mux

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS audit_logs (
-    id BIGSERIAL PRIMARY KEY,
-    operation VARCHAR(50),
-    table_name VARCHAR(50),
-    record_id BIGINT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    id object_id PRIMARY KEY DEFAULT gen_random_uuid(),
+    operation TEXT,
+    table_name TEXT,
+    record_id object_id,
+    created_at datetime DEFAULT NOW()
 );

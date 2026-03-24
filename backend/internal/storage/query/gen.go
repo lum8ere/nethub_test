@@ -17,6 +17,7 @@ import (
 
 var (
 	Q               = new(Query)
+	AuditLog        *auditLog
 	Device          *device
 	Location        *location
 	Platform        *platform
@@ -26,6 +27,7 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	AuditLog = &Q.AuditLog
 	Device = &Q.Device
 	Location = &Q.Location
 	Platform = &Q.Platform
@@ -36,6 +38,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:              db,
+		AuditLog:        newAuditLog(db, opts...),
 		Device:          newDevice(db, opts...),
 		Location:        newLocation(db, opts...),
 		Platform:        newPlatform(db, opts...),
@@ -47,6 +50,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	AuditLog        auditLog
 	Device          device
 	Location        location
 	Platform        platform
@@ -59,6 +63,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		AuditLog:        q.AuditLog.clone(db),
 		Device:          q.Device.clone(db),
 		Location:        q.Location.clone(db),
 		Platform:        q.Platform.clone(db),
@@ -78,6 +83,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		AuditLog:        q.AuditLog.replaceDB(db),
 		Device:          q.Device.replaceDB(db),
 		Location:        q.Location.replaceDB(db),
 		Platform:        q.Platform.replaceDB(db),
@@ -87,6 +93,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	AuditLog        IAuditLogDo
 	Device          IDeviceDo
 	Location        ILocationDo
 	Platform        IPlatformDo
@@ -96,6 +103,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		AuditLog:        q.AuditLog.WithContext(ctx),
 		Device:          q.Device.WithContext(ctx),
 		Location:        q.Location.WithContext(ctx),
 		Platform:        q.Platform.WithContext(ctx),
