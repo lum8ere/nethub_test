@@ -54,6 +54,21 @@ func initRoutes(handlers *AppHandlers) (*chi.Mux, error) {
 				r.Delete("/", handlers.Device.Delete)
 			})
 		})
+
+		r.Route("/locations", func(r chi.Router) {
+			r.Post("/", handlers.Location.Create)
+			r.Get("/", handlers.Location.List)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Put("/", handlers.Location.Update)
+				r.Delete("/", handlers.Location.Delete)
+			})
+		})
+
+		r.Route("/platforms", func(r chi.Router) {
+			r.Get("/", handlers.Platform.List)
+		})
+
+		r.Get("/audit", handlers.Audit.List)
 	})
 
 	return r, nil

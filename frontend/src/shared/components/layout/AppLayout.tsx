@@ -1,12 +1,14 @@
 import {
     DesktopOutlined,
     GlobalOutlined,
+    HistoryOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Breadcrumb, Layout, Menu, Space, theme, Typography } from 'antd';
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const { Header, Sider, Content, Footer } = Layout;
 const { Title, Text } = Typography;
@@ -20,6 +22,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const {
         token: { colorBgContainer, borderRadiusLG }
     } = theme.useToken();
+
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const selectedKey = location.pathname.includes('audit') ? '2' : '1';
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -46,13 +53,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 <Menu
                     theme="dark"
                     mode="inline"
-                    defaultSelectedKeys={['1']}
+                    selectedKeys={[selectedKey]}
+                    onClick={({ key }) => {
+                        if (key === '1') navigate('/');
+                        if (key === '2') navigate('/audit');
+                    }}
                     items={[
-                        {
-                            key: '1',
-                            icon: <DesktopOutlined />,
-                            label: 'Устройства'
-                        }
+                        { key: '1', icon: <DesktopOutlined />, label: 'Устройства' },
+                        { key: '2', icon: <HistoryOutlined />, label: 'Аудит' }
                     ]}
                 />
             </Sider>

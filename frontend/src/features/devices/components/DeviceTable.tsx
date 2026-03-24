@@ -1,10 +1,12 @@
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { Device } from 'shared/types/device';
+import { Location } from 'shared/types/location';
 
 interface DeviceTableProps {
     devices: Device[];
+    locations: Location[];
     loading: boolean;
     total: number;
     currentPage: number;
@@ -15,6 +17,7 @@ interface DeviceTableProps {
 
 export const DeviceTable: React.FC<DeviceTableProps> = ({
     devices,
+    locations,
     loading,
     total,
     currentPage,
@@ -30,6 +33,22 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
             render: (text: string) => <b>{text}</b>
         },
         { title: 'IP Адрес', dataIndex: 'ip', key: 'ip' },
+        {
+            title: 'Локация',
+            dataIndex: 'location',
+            key: 'location',
+            render: (locationId: string) => {
+                const loc = locations.find((l) => l.id === locationId);
+                return loc ? (
+                    <span>
+                        <EnvironmentOutlined style={{ marginRight: 4, color: '#8c8c8c' }} />
+                        {loc.name}
+                    </span>
+                ) : (
+                    <Tag color="default">Не указана</Tag>
+                );
+            }
+        },
         {
             title: 'Платформа',
             dataIndex: 'platform_code',

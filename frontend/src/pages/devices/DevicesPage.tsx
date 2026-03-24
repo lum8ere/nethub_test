@@ -3,11 +3,17 @@ import { deviceApi } from 'features/devices/api/device.api';
 import { DeviceFilters } from 'features/devices/components/DeviceFilters';
 import { DeviceModal } from 'features/devices/components/DeviceModal';
 import { DeviceTable } from 'features/devices/components/DeviceTable';
+import { locationApi } from 'features/locations/api/location.api';
+import { platformApi } from 'features/platforms/api/platform.api';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Device } from 'shared/types/device';
+import { Location } from 'shared/types/location';
+import { Platform } from 'shared/types/platform';
 
 export const DevicesPage: React.FC = () => {
     const [devices, setDevices] = useState<Device[]>([]);
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [platforms, setPlatforms] = useState<Platform[]>([]);
     const [loading, setLoading] = useState(false);
     const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +47,22 @@ export const DevicesPage: React.FC = () => {
         },
         [search, status]
     );
+
+    useEffect(() => {
+        const fetchDictionaries = async () => {
+            try {
+                const [locRes, platRes] = await Promise.all([
+                    locationApi.listAll(),
+                    platformApi.listAll()
+                ]);
+                setLocations(locRes.data.data || []);
+                setPlatforms(platRes.data || []);
+            } catch (e) {
+                console.error('Ошибка загрузки справочников', e);
+            }
+        };
+        fetchDictionaries();
+    }, []);
 
     useEffect(() => {
         loadData(1);
@@ -98,6 +120,7 @@ export const DevicesPage: React.FC = () => {
             />
             <DeviceTable
                 devices={devices}
+                locations={locations}
                 loading={loading}
                 total={total}
                 currentPage={currentPage}
@@ -108,6 +131,8 @@ export const DevicesPage: React.FC = () => {
             <DeviceModal
                 open={isModalOpen}
                 device={selectedDevice}
+                locations={locations}
+                platforms={platforms}
                 confirmLoading={submitLoading}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSave}

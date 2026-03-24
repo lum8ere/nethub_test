@@ -18,7 +18,10 @@ import (
 )
 
 type AppHandlers struct {
-	Device *handler.DeviceHandler
+	Device   *handler.DeviceHandler
+	Location *handler.LocationHandler
+	Platform *handler.PlatformHandler
+	Audit    *handler.AuditHandler
 }
 
 // @title NetHub MDM API
@@ -55,7 +58,10 @@ func main() {
 			deviceSvc := service.NewDeviceService(q)
 
 			handlers := &AppHandlers{
-				Device: handler.NewDeviceHandler(deviceSvc, logger),
+				Device:   handler.NewDeviceHandler(deviceSvc, logger),
+				Location: handler.NewLocationHandler(service.NewLocationService(q), log),
+				Platform: handler.NewPlatformHandler(service.NewPlatformService(q), log),
+				Audit:    handler.NewAuditHandler(service.NewAuditService(q), log),
 			}
 
 			r, err := initRoutes(handlers)

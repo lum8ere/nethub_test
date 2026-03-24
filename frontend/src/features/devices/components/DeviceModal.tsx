@@ -1,10 +1,14 @@
 import { Form, Input, Modal, Select, Switch } from 'antd';
 import React, { useEffect } from 'react';
 import { Device } from 'shared/types/device';
+import { Location } from 'shared/types/location';
+import { Platform } from 'shared/types/platform';
 
 interface DeviceModalProps {
     open: boolean;
     device: Device | null;
+    locations: Location[];
+    platforms: Platform[];
     onClose: () => void;
     onSave: (values: Device) => Promise<void>;
     confirmLoading: boolean;
@@ -13,6 +17,8 @@ interface DeviceModalProps {
 export const DeviceModal: React.FC<DeviceModalProps> = ({
     open,
     device,
+    locations,
+    platforms,
     onClose,
     onSave,
     confirmLoading
@@ -25,59 +31,48 @@ export const DeviceModal: React.FC<DeviceModalProps> = ({
                 form.setFieldsValue(device);
             } else {
                 form.resetFields();
-                form.setFieldsValue({ is_active: true, platform_code: 'LINUX' });
+                form.setFieldsValue({ is_active: true });
             }
         }
     }, [open, device, form]);
 
     const handleOk = async () => {
-        try {
-            const values = await form.validateFields();
-            await onSave(values);
-        } catch (error) {
-            // Валидация не прошла
-        }
+        const values = await form.validateFields();
+        await onSave(values);
     };
 
     return (
         <Modal
-            title={device ? 'Редактировать устройство' : 'Добавить новое устройство'}
+            title={device ? 'Редактировать устройство' : 'Добавить устройство'}
             open={open}
             onOk={handleOk}
             onCancel={onClose}
             confirmLoading={confirmLoading}
-            okText="Сохранить"
-            cancelText="Отмена"
-            destroyOnClose
+            destroyOnHidden
         >
-            <Form form={form} layout="vertical" name="deviceForm">
-                <Form.Item
-                    name="hostname"
-                    label="Hostname"
-                    rules={[{ required: true, message: 'Пожалуйста, введите hostname устройства' }]}
-                >
-                    <Input placeholder="например, workstation-01" />
+            <Form form={form} layout="vertical">
+                <Form.Item name="hostname" label="Hostname" rules={[{ required: true }]}>
+                    <Input />
                 </Form.Item>
-
-                <Form.Item
-                    name="ip"
-                    label="IP Адрес"
-                    rules={[
-                        { required: true, message: 'Введите IP адрес' },
-                        {
-                            pattern: /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/,
-                            message: 'Некорректный формат IP'
-                        }
-                    ]}
-                >
-                    <Input placeholder="192.168.1.10" />
+                <Form.Item name="ip" label="IP Адрес" rules={[{ required: true }]}>
+                    <Input />
                 </Form.Item>
-
                 <Form.Item name="platform_code" label="Платформа" rules={[{ required: true }]}>
-                    <Select>
-                        <Select.Option value="LINUX">Linux OS</Select.Option>
-                        <Select.Option value="WINDOWS">Windows OS</Select.Option>
-                        <Select.Option value="MACOS">macOS</Select.Option>
+                    <Select placeholder="Выберите платформу">
+                        {platforms.map((p) => (
+                            <Select.Option key={p.code} value={p.code}>
+                                {p.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+                <Form.Item name="location" label="Локация">
+                    <Select placeholder="Выберите локацию" allowClear>
+                        {locations.map((l) => (
+                            <Select.Option key={l.id} value={l.id}>
+                                {l.name}
+                            </Select.Option>
+                        ))}
                     </Select>
                 </Form.Item>
 
