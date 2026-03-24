@@ -5,12 +5,15 @@ import (
 	"nethub-mdm/pkg/rest_middleware"
 	"time"
 
+	_ "nethub-mdm/docs"
+
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func initRoutes() (*chi.Mux, error) {
+func initRoutes(handlers *AppHandlers) (*chi.Mux, error) {
 
 	r := chi.NewRouter()
 
@@ -34,26 +37,24 @@ func initRoutes() (*chi.Mux, error) {
 
 	r.Route("/api/v1", func(r chi.Router) {
 
+		r.Get("/swagger/*", httpSwagger.WrapHandler)
+
 		r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("ok"))
 		})
 
-		// r.Route("/devices", func(r chi.Router) {
-		// 	r.Post("/", deviceHandler.Create)
-		// 	r.Get("/", deviceHandler.List)
+		r.Route("/devices", func(r chi.Router) {
+			r.Post("/", handlers.Device.Create)
+			r.Get("/", handlers.Device.List)
 
-		// 	r.Route("/{id}", func(r chi.Router) {
-		// 		r.Get("/", deviceHandler.GetByID)
-		// 		r.Put("/", deviceHandler.Update)
-		// 		r.Delete("/", deviceHandler.Delete)
-		// 	})
-		// })
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", handlers.Device.GetByID)
+				r.Put("/", handlers.Device.Update)
+				r.Delete("/", handlers.Device.Delete)
+			})
+		})
 	})
-	// TODO: Добавить
-	// 	r.Get("/swagger/*", httpSwagger.Handler(
-	// 	httpSwagger.URL("./swagger/doc.json"), // Use relative URL instead of absolute path
-	// ))
 
 	return r, nil
 }

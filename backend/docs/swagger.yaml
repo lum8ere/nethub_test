@@ -1,0 +1,106 @@
+basePath: /
+definitions:
+  errors.ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  nethub-mdm_internal_storage_model.Device:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      hostname:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      is_active:
+        type: boolean
+      location:
+        type: string
+      name:
+        type: string
+      platform_code:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:9000
+info:
+  contact: {}
+  description: API сервера управления устройствами
+  title: NetHub MDM API
+  version: "1.0"
+paths:
+  /api/v1/devices:
+    get:
+      parameters:
+      - description: Поиск по hostname
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по активности
+        in: query
+        name: is_active
+        type: boolean
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество на странице
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Список устройств
+      tags:
+      - devices
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные устройства
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/nethub-mdm_internal_storage_model.Device'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/nethub-mdm_internal_storage_model.Device'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Создать устройство
+      tags:
+      - devices
+swagger: "2.0"

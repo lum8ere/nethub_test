@@ -1,7 +1,7 @@
 MIGRATIONS_DIR := ./migrations
 DB_URL ?= postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
 	
-.PHONY: migrate-create migrate-up migrate-down migrate-rollback migrate-force db-up db-down
+.PHONY: migrate-create migrate-up migrate-down migrate-rollback migrate-force db-up db-down swagger
 
 migrate-create:
 	@if [ -z "$(name)" ]; then \
@@ -30,3 +30,6 @@ migrate-force:
 		exit 1; \
 	fi
 	migrate -path $(MIGRATIONS_DIR) -database $(DB_URL) force $(version)
+
+swagger:
+	cd backend && swag init -g ./cmd/api/main.go --parseDependency --parseInternal

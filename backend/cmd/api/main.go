@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"nethub-mdm/internal/config"
+	"nethub-mdm/internal/service"
+	"nethub-mdm/internal/storage/query"
 	"nethub-mdm/internal/transport/http/handler"
 	"nethub-mdm/pkg/db_manager"
 	"nethub-mdm/pkg/logger"
@@ -19,6 +21,11 @@ type AppHandlers struct {
 	Device *handler.DeviceHandler
 }
 
+// @title NetHub MDM API
+// @version 1.0
+// @description API сервера управления устройствами
+// @host localhost:9000
+// @BasePath /
 func main() {
 	log, err := logger.NewZapLogger("api")
 	if err != nil {
@@ -41,7 +48,17 @@ func main() {
 		log,
 		cfg.DatabaseURL,
 		func(ctx context.Context, logger logger.Logger, mgr db_manager.Manager) error {
-			r, err := initRoutes()
+
+			db := mgr.DB()
+			q := query.Use(db)
+
+			deviceSvc := service.NewDeviceService(q)
+
+			handlers := &AppHandlers{
+				Device: handler.NewDeviceHandler(deviceSvc, logger),
+			}
+
+			r, err := initRoutes(handlers)
 			if err != nil {
 				return err
 			}
