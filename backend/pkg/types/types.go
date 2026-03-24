@@ -15,11 +15,25 @@ func (oid OBJECT_ID) String() string {
 func NewObjectId() OBJECT_ID {
 	return OBJECT_ID(uuid.New().String())
 }
+
+func NewObjectIdStr() string {
+	return uuid.New().String()
+}
+
 func NewObjectIdRef() *OBJECT_ID {
 	oid := NewObjectId()
 	return &oid
 }
 
+func NewObjectIdStrRef() *string {
+	oid := NewObjectIdStr()
+	return &oid
+}
+
 func StrPtr(s string) *string {
 	return &s
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
 }
