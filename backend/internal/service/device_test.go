@@ -89,3 +89,29 @@ func TestDeviceService_List(t *testing.T) {
 		}
 	})
 }
+
+func TestDeviceService_CreateAndGet(t *testing.T) {
+	q := setupTestDB(t)
+	svc := NewDeviceService(q)
+	ctx := context.Background()
+
+	t.Run("create and find device", func(t *testing.T) {
+		id := types.NewObjectIdStr()
+		err := svc.Create(ctx, &model.Device{
+			ID:           types.StrPtr(id),
+			Hostname:     types.StrPtr("new-device"),
+			PlatformCode: "LINUX",
+		})
+		if err != nil {
+			t.Fatalf("failed to create: %v", err)
+		}
+
+		found, err := svc.GetByID(ctx, id)
+		if err != nil {
+			t.Fatalf("failed to find: %v", err)
+		}
+		if *found.Hostname != "new-device" {
+			t.Errorf("expected new-device, got %s", *found.Hostname)
+		}
+	})
+}

@@ -1,5 +1,6 @@
 MIGRATIONS_DIR := ./migrations
 DB_URL ?= postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+BACKEND_DIR := ./backend
 	
 .PHONY: migrate-create migrate-up migrate-down migrate-rollback migrate-force db-up db-down swagger
 
@@ -33,3 +34,20 @@ migrate-force:
 
 swagger:
 	cd backend && swag init -g ./cmd/api/main.go --parseDependency --parseInternal
+
+.PHONY: test test-v test-cover test-race cover-html
+
+test:
+	@echo "Running tests..."
+	cd $(BACKEND_DIR) && go test ./...
+
+test-v:
+	@echo "Running tests in verbose mode..."
+	cd $(BACKEND_DIR) && go test -v ./...
+
+test-cover:
+	@echo "Running tests with coverage..."
+	cd $(BACKEND_DIR) && go test -cover ./...
+
+cover-html: 
+	cd $(BACKEND_DIR) && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
