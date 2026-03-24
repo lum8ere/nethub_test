@@ -2,6 +2,7 @@ package service_helper
 
 import (
 	"context"
+	"fmt"
 	"nethub-mdm/internal/storage"
 	"nethub-mdm/pkg/db_manager"
 	"nethub-mdm/pkg/logger"
@@ -9,58 +10,56 @@ import (
 	"os"
 )
 
-type LifecycleFunc func(ctx context.Context, log logger.Logger) error
+type LifecycleFunc func(ctx context.Context, log logger.Logger, mgr db_manager.Manager) error
 
 func StartService(
 	serviceName string,
+	logger logger.Logger,
+	dsn string,
 	initFunc LifecycleFunc,
 	startFunc LifecycleFunc,
 	shutdownFunc LifecycleFunc,
 ) {
-	log, err := logger.NewZapLogger(serviceName)
-	if err != nil {
-		panic("Failed to initialize logger: " + err.Error())
-	}
-	defer log.Sync()
+	prefix := fmt.Sprintf("Service '%s'", serviceName)
+	logger.Infof("%s: Initializing", prefix)
+	defer logger.Infof("%s: Exited", prefix)
 
-	ctx := context.Background()
-
-	// FIXME: вынести в env
-	dsn := "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	mgr, err := db_manager.NewDbManager(dsn)
 	if err != nil {
-		log.Error("Error connecting to database: %v", err)
+		logger.Error("Error connecting to database: %v", err)
 		os.Exit(1)
 	}
 
 	err = mgr.UsePlugins(
-		storage.NewAuditPlugin(log),
+		storage.NewAuditPlugin(logger),
 	)
 	if err != nil {
-		log.Error("initialization plugins failed", "error", err)
+		logger.Error("initialization plugins failed", "error", err)
 	}
 
-	log.Info("Starting initialization...")
+	logger.Info("Starting initialization...")
 
-	if err := initFunc(ctx, log); err != nil {
-		log.Error("Initialization failed", "error", err)
+	if err := initFunc(ctx, logger, mgr); err != nil {
+		logger.Error("Initialization failed", "error", err)
 		os.Exit(1)
 	}
 
-	if err := startFunc(ctx, log); err != nil {
-		log.Error("Start failed", "error", err)
+	if err := startFunc(ctx, logger, mgr); err != nil {
+		logger.Error("Start failed", "error", err)
 		os.Exit(1)
 	}
 
-	log.Info("Service is running. Waiting for shutdown signal...")
+	logger.Info("Service is running. Waiting for shutdown signal...")
 	sig := shutdown.WaitForSignalToShutdown()
-	log.Info("Received shutdown signal", "signal", sig.String())
+	logger.Info("Received shutdown signal", "signal", sig.String())
 
-	if err := shutdownFunc(ctx, log); err != nil {
-		log.Error("Shutdown completed with error", "error", err)
+	if err := shutdownFunc(ctx, logger, mgr); err != nil {
+		logger.Error("Shutdown completed with error", "error", err)
 		os.Exit(1)
 	} else {
-		log.Info("Shutdown completed successfully")
+		logger.Info("Shutdown completed successfully")
 	}
 }

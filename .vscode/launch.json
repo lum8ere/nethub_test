@@ -2,20 +2,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "gen-gorm: run",
+      "name": "api: run local",
       "type": "go",
       "request": "launch",
-      "program": "${workspaceFolder}/backend-api-v5/apps/gen-gorm",
+      "program": "${workspaceFolder}/backend/cmd/api/main.go",
       "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/envs/local.env"
-    },
-    {
-      "name": "backend-api-v5: run local",
-      "type": "go",
-      "request": "launch",
-      "program": "${workspaceFolder}/backend-api-v5/apps/backend-api-v5",
-      "cwd": "${workspaceFolder}",
-      "envFile": "${workspaceFolder}/envs/local.env"
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }

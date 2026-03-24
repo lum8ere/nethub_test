@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"nethub-mdm/internal/config"
 	"nethub-mdm/internal/transport/http/handler"
+	"nethub-mdm/pkg/db_manager"
 	"nethub-mdm/pkg/logger"
 	"nethub-mdm/pkg/service_helper"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -16,11 +20,27 @@ type AppHandlers struct {
 }
 
 func main() {
+	log, err := logger.NewZapLogger("api")
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer log.Sync()
+
+	if os.Getenv("ENV_PATH") == "" {
+		os.Setenv("ENV_PATH", "../../../.env")
+	}
+
+	// 3. Загружаем конфигурацию
+	cfg := config.LoadConfig(log)
+
 	var allRoutes *chi.Mux
 	var webServer *http.Server
 
 	service_helper.StartService("api",
-		func(ctx context.Context, logger logger.Logger) error {
+		log,
+		cfg.DatabaseURL,
+		func(ctx context.Context, logger logger.Logger, mgr db_manager.Manager) error {
 			r, err := initRoutes()
 			if err != nil {
 				return err
@@ -28,7 +48,7 @@ func main() {
 			allRoutes = r
 			return nil
 		},
-		func(ctx context.Context, logger logger.Logger) error {
+		func(ctx context.Context, logger logger.Logger, mgr db_manager.Manager) error {
 			webServer = &http.Server{
 				Addr:    ":9000",
 				Handler: allRoutes,
@@ -43,7 +63,7 @@ func main() {
 
 			return nil
 		},
-		func(ctx context.Context, logger logger.Logger) error {
+		func(ctx context.Context, logger logger.Logger, mgr db_manager.Manager) error {
 			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer shutdownCancel()
 
